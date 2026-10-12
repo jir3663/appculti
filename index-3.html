@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#123524">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cultivo Pro">
+<meta name="description" content="Gestor personal de cultivo indoor con calendario, seguimiento y copias de seguridad">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Mi Cultivo Indoor Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #123524;
+        --secondary: #2E5A44;
+        --accent: #388E3C;
+        --accent-light: #E8F5E9;
+        --bg: #F4F7F4;
+        --card-bg: #FFFFFF;
+        --text: #1E291E;
+        --text-muted: #556B55;
+        --border: #D1E0D1;
+        --shadow: 0 4px 20px rgba(18, 53, 36, 0.08);
+        --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 0 0 env(safe-area-inset-bottom) 0;
+        line-height: 1.5;
+    }
+
+    header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 { margin: 0 0 6px 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+    p.subtitle { margin: 0; font-size: 0.9rem; opacity: 0.85; font-weight: 400; }
+    .install-btn { margin-top: 12px; background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+    .alert-banner {
+        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+        color: white;
+        padding: 14px 20px;
+        border-radius: var(--radius);
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        animation: fadeIn 0.4s ease;
+    }
+    .alert-banner-content { font-size: 0.95rem; font-weight: 500; flex: 1; min-width: 200px; }
+    .alert-banner .alert-actions { display: flex; gap: 8px; }
+    .alert-banner button {
+        background: white; color: #0284C7; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem; white-space: nowrap; font-family: inherit;
+    }
+    .alert-banner button:hover { background: #F0F9FF; }
+
+    .top-dashboard {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: start;
+        border: 1px solid var(--border);
+    }
+
+    .control-group { position: relative; }
+    .control-group label { font-weight: 600; font-size: 0.85rem; color: var(--primary); display: block; margin-bottom: 6px; }
+    .control-group input, .control-group select {
+        padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; width: 100%; box-sizing: border-box; font-size: 0.9rem; background: #FAFAFA; transition: all 0.2s;
+    }
+    .control-group input:focus, .control-group select:focus {
+        outline: none; border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(56, 142, 60, 0.15);
+    }
+
+    .search-dropdown-list {
+        display: none; position: absolute; top: 100%; left: 0; right: 0;
+        background: white; border: 1px solid var(--border); border-top: none;
+        border-radius: 0 0 8px 8px; max-height: 240px; overflow-y: auto; z-index: 999;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .search-dropdown-item {
+        padding: 10px 14px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid #F0F4F0; transition: background 0.15s;
+    }
+    .search-dropdown-item small { color: var(--text-muted); font-weight: 400; }
+    .search-dropdown-item:hover { background-color: var(--accent-light); color: var(--primary); font-weight: 600; }
+
+    .status-counter {
+        background: var(--accent-light); border: 1px solid #A5D6A7; padding: 12px 16px;
+        border-radius: 8px; font-size: 0.9rem; color: var(--primary); font-weight: 600; text-align: center; grid-column: 1 / -1;
+        display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+    }
+
+    .main-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 12px; overflow-x: auto; }
+    .main-tab-btn { background: #E2E8E2; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); white-space: nowrap; font-size: 0.9rem; transition: all 0.2s; font-family: inherit; }
+    .main-tab-btn:hover { background: #D1DFD1; color: var(--primary); }
+    .main-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(18, 53, 36, 0.2); }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px; }
+    .tab-btn {
+        background-color: #E2E8E2; border: none; padding: 8px 16px; border-radius: 20px;
+        cursor: pointer; font-weight: 600; color: var(--text-muted); white-space: nowrap; font-size: 0.85rem; transition: all 0.2s; font-family: inherit;
+    }
+    .tab-btn:hover { background: #D1DFD1; color: var(--primary); }
+    .tab-btn.active { background-color: var(--secondary); color: white; box-shadow: 0 2px 8px rgba(46, 90, 68, 0.25); }
+
+    .view-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+    .view-toggle button { border: 1px solid var(--border); background: white; color: var(--text-muted); border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
+    .view-toggle button.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+
+    .gv-wrap { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-bottom: 24px; }
+    .gv-legend { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; }
+    .gv-row { display: grid; grid-template-columns: 78px repeat(7, minmax(0, 1fr)); gap: 5px; margin-bottom: 5px; align-items: stretch; }
+    .gv-wk { display: flex; flex-direction: column; justify-content: center; background: var(--primary); color: white; border-radius: 8px; padding: 4px 6px; cursor: pointer; }
+    .gv-wk b { font-size: 0.9rem; }
+    .gv-wk small { font-size: 0.58rem; opacity: 0.85; line-height: 1.15; }
+    .gv-cell { border: 1px solid var(--border); border-radius: 8px; background: #fff; text-align: center; padding: 4px 1px 3px; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-height: 58px; transition: transform 0.15s; }
+    .gv-cell:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .gv-cell b { font-size: 0.82rem; color: var(--primary); }
+    .gv-cell .gv-ico { font-size: 1.05rem; line-height: 1.3; min-height: 1.3em; }
+    .gv-cell small { font-size: 0.55rem; color: var(--text-muted); }
+    .gv-cell em { font-size: 0.55rem; font-style: normal; line-height: 1; min-height: 0.6rem; }
+    .gv-cell.gv-nutri { background: var(--accent-light); border-color: #A5D6A7; }
+    .gv-cell.gv-water { background: #E0F2FE; border-color: #7DD3FC; }
+    .gv-cell.gv-done { background: #D1E7DD; border-color: #2E5A44; }
+    .gv-cell.gv-today { outline: 3px solid #0284C7; outline-offset: 1px; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .week-container { display: none; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 24px; border: 1px solid var(--border); }
+    .week-container.active { display: block; }
+    .week-header { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; border-bottom: 2px solid var(--accent); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+    .grid-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+
+    .day-card {
+        border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #FFFFFF;
+        min-height: 160px; display: flex; flex-direction: column; justify-content: space-between; position: relative; cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .day-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(18, 53, 36, 0.08); border-color: var(--accent); }
+    .day-card.water-day { background-color: var(--accent-light); border-color: #A5D6A7; }
+    .day-card.done-day { background-color: #D1E7DD !important; border-color: #2E5A44 !important; }
+    .day-card.today-card { outline: 3px solid #0284C7; outline-offset: 1px; }
+
+    .day-header { font-weight: 700; font-size: 0.85rem; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .date-tag { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; text-transform: capitalize; }
+
+    .ph-tag { font-size: 0.7rem; color: #075985; font-weight: 600; margin-top: 2px; }
+    .mix-tag { font-size: 0.7rem; color: #92400E; margin-top: 1px; line-height: 1.25; }
+    .env-tag { font-size: 0.7rem; color: #4A5568; margin-top: 4px; font-weight: 500; }
+    .led-tag { font-size: 0.7rem; color: #6B21A8; font-weight: 600; margin-top: 2px; }
+    .nutri-tag { font-size: 0.7rem; color: #B45309; font-weight: 600; margin-top: 2px; }
+    .task-tag { font-size: 0.7rem; color: #2D3748; margin-top: 3px; line-height: 1.3; }
+
+    .badges-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .note-badge { font-size: 0.65rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .photo-badge { font-size: 0.65rem; background: #0284C7; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .edit-badge { font-size: 0.65rem; background: #B45309; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+    .card-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .mini-btn { flex: 1; border: 1px solid var(--border); background: white; border-radius: 6px; padding: 6px 4px; font-size: 0.72rem; font-weight: 700; cursor: pointer; color: var(--primary); font-family: inherit; }
+    .mini-btn.water { background: #0284C7; color: white; border-color: #0284C7; }
+    .mini-btn:hover { filter: brightness(0.95); }
+
+    .calc-card, .stats-card { background: white; padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow); max-width: 650px; margin: 0 auto 20px auto; border: 1px solid var(--border); }
+    .calc-result-box { background: #F8FBF8; border: 1px solid var(--border); padding: 16px; border-radius: 10px; margin-top: 20px; font-size: 0.95rem; border-left: 4px solid var(--accent); }
+    .calc-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .calc-table th, .calc-table td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); }
+    .muted { color: var(--text-muted); font-size: 0.82rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
+    .stat-box { background: #F8FBF8; border: 1px solid var(--border); padding: 15px; border-radius: 10px; text-align: center; }
+    .stat-box h4 { margin: 0 0 5px 0; font-size: 0.8rem; color: var(--text-muted); }
+    .stat-box .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(18, 53, 36, 0.5); backdrop-filter: blur(4px); justify-content: center; align-items: center; }
+    .modal-content { background-color: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); animation: modalZoom 0.25s ease; }
+
+    @keyframes modalZoom { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .modal-content h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; font-size: 1.2rem; }
+    .modal-section { margin-bottom: 16px; font-size: 0.95rem; }
+    .modal-section label.lbl { font-weight: 600; color: var(--primary); font-size: 0.85rem; display: block; margin-bottom: 6px; }
+
+    textarea, input[type="text"].custom-input, input[type="number"].custom-input, input[type="date"].custom-input, select.custom-input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-family: inherit; box-sizing: border-box; background: #FAFAFA; font-size: 0.85rem; }
+    textarea:focus, input.custom-input:focus, select.custom-input:focus { outline: none; border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(56, 142, 60, 0.15); }
+
+    .photo-preview-container { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .thumb-wrap { position: relative; }
+    .photo-thumb { width: 75px; height: 75px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s; display: block; }
+    .photo-thumb:hover { transform: scale(1.05); }
+    .thumb-x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: #B91C1C; color: white; font-weight: 700; cursor: pointer; line-height: 1; }
+
+    .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+    .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; font-family: inherit; }
+    .btn.small { padding: 6px 12px; font-size: 0.8rem; }
+    .btn-save { background-color: var(--secondary); color: white; box-shadow: 0 4px 12px rgba(46, 90, 68, 0.2); }
+    .btn-save:hover { background-color: var(--primary); }
+    .btn-close { background-color: #E2E8E2; color: var(--text); }
+    .btn-close:hover { background-color: #CBD5CB; }
+    .btn-water { background-color: #0284C7; color: white; width: 100%; padding: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
+    .btn-water:hover { background-color: #0369A1; }
+    .btn-water.done { background-color: var(--secondary); }
+    .btn-danger { background-color: #B91C1C; color: white; }
+
+    .archive-card { background: white; border-radius: var(--radius); padding: 18px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; gap: 18px; align-items: flex-start; }
+    .archive-photo { width: 110px; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; cursor: pointer; }
+    .archive-photo.noimg { display: flex; align-items: center; justify-content: center; font-size: 2.4rem; background: var(--accent-light); cursor: default; }
+    .archive-extra { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .archive-extra img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; }
+
+    .settings-card { background: white; padding: 22px; border-radius: var(--radius); box-shadow: var(--shadow); max-width: 760px; margin: 0 auto 20px auto; border: 1px solid var(--border); }
+    .settings-card h2 { color: var(--primary); margin-top: 0; font-size: 1.15rem; }
+    .settings-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .nutri-block { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; background: #FBFDFB; }
+    .nutri-block h4 { margin: 0 0 8px 0; color: var(--primary); font-size: 0.9rem; }
+    .nutri-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .nutri-row input.num { width: 80px; flex-shrink: 0; }
+    .nutri-row span { font-size: 0.75rem; color: var(--text-muted); }
+
+    #lightbox { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; cursor: zoom-out; }
+    #lightbox img { max-width: 94%; max-height: 90%; border-radius: 8px; }
+
+    #toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(30px); background: var(--primary); color: white; padding: 10px 18px; border-radius: 24px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 3000; max-width: 90%; text-align: center; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .footer-note { text-align: center; margin: 30px 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+
+    @media (max-width: 600px) {
+        input, select, textarea { font-size: 16px !important; }
+        .archive-card { flex-direction: column; }
+        .archive-photo { width: 100%; height: 180px; }
+        h1 { font-size: 1.4rem; }
+        .gv-row { grid-template-columns: 50px repeat(7, minmax(0, 1fr)); gap: 3px; }
+        .gv-wk small { display: none; }
+        .gv-cell small { display: none; }
+        .gv-cell { min-height: 50px; }
+        .gv-wrap { padding: 8px; }
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>🌿 Mi Cultivo Indoor Pro</h1>
+    <p class="subtitle">Gestor con catálogo mundial de genéticas • Advanced Nutrients</p>
+    <button id="installBtn" class="install-btn" style="display:none" onclick="installApp()">📲 Instalar app</button>
+</header>
+
+<div class="container">
+    <div id="smartAlertBanner" style="display:none;" class="alert-banner">
+        <div class="alert-banner-content" id="alertBannerText">💧 Hoy toca riego.</div>
+        <div class="alert-actions">
+            <button onclick="alertDone()">Marcar regado</button>
+            <button onclick="dismissAlert()">Entendido</button>
+        </div>
+    </div>
+
+    <div class="top-dashboard">
+        <div class="control-group">
+            <label for="strainSearchInput">🔍 Genética (100+ variedades):</label>
+            <input type="text" id="strainSearchInput" placeholder="Haz clic o escribe para buscar..." autocomplete="off" onfocus="showStrainDropdown()" oninput="filterStrains()" onclick="showStrainDropdown()">
+            <div id="strainDropdownList" class="search-dropdown-list"></div>
+        </div>
+        <div class="control-group">
+            <label for="startDateInput">📅 Fecha de inicio:</label>
+            <input type="date" id="startDateInput" onchange="updateSettings()">
+        </div>
+        <div class="control-group">
+            <label for="plantsCountInput">🌿 Número de plantas:</label>
+            <input type="number" id="plantsCountInput" value="9" min="1" max="100" onchange="updateSettings()">
+        </div>
+        <div class="control-group">
+            <label for="mediumSelect">🪴 Sustrato:</label>
+            <select id="mediumSelect" onchange="updateSettings()">
+                <option value="tierra">Tierra</option>
+                <option value="coco">Coco</option>
+                <option value="hidro">Hidroponía</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="vegWeeksInput">🌱 Semanas de vegetativo:</label>
+            <input type="number" id="vegWeeksInput" value="4" min="0" max="16" onchange="updateSettings()">
+        </div>
+        <div class="control-group">
+            <label for="flowerWeeksInput">🌸 Semanas de floración:</label>
+            <input type="number" id="flowerWeeksInput" value="9" min="1" max="20" onchange="updateSettings()">
+        </div>
+        <div class="status-counter" id="liveCountdown">Calculando estado del ciclo...</div>
+    </div>
+
+    <div class="main-tabs">
+        <button class="main-tab-btn active" data-tab="calendar" onclick="switchMainTab('calendar')">🗓️ Calendario</button>
+        <button class="main-tab-btn" data-tab="custom" onclick="switchMainTab('custom')">🛠️ Custom Mode</button>
+        <button class="main-tab-btn" data-tab="calculator" onclick="switchMainTab('calculator')">🧪 Calculadora</button>
+        <button class="main-tab-btn" data-tab="archive" onclick="switchMainTab('archive')">📦 Historial</button>
+        <button class="main-tab-btn" data-tab="settings" onclick="switchMainTab('settings')">⚙️ Ajustes</button>
+    </div>
+
+    <div id="view-calendar" class="view-section active">
+        <div class="view-toggle" id="viewToggleN"></div>
+        <div class="tabs" id="weekTabs"></div>
+        <div id="weeksContent"></div>
+    </div>
+
+    <div id="view-custom" class="view-section">
+        <div style="background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border);">
+            <h2 style="color: var(--primary); margin-top:0; font-size: 1.2rem;">🛠️ Custom Mode · Editor manual de cuidados</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom:0;">Pulsa una tarjeta para editar clima, luz, riego o tarea de ese día, o usa el botón 💧 para marcar el riego como hecho.</p>
+        </div>
+        <div class="view-toggle" id="viewToggleC"></div>
+        <div class="tabs" id="customWeekTabs"></div>
+        <div id="customWeeksContent"></div>
+    </div>
+
+    <div id="view-calculator" class="view-section">
+        <div class="calc-card">
+            <h2 style="color: var(--primary); margin-top:0; font-size: 1.25rem;">Calculadora de tanque y riego</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Calcula los mililitros de cada producto para tu tanque según la semana del ciclo.</p>
+            <div class="control-group" style="margin-bottom: 14px;">
+                <label for="calcWeekSelect">Semana del cultivo:</label>
+                <select id="calcWeekSelect" onchange="calculateNutrients()"></select>
+            </div>
+            <div class="control-group" style="margin-bottom: 14px;">
+                <label for="calcLitrosInput">Litros totales de agua en el tanque:</label>
+                <input type="number" id="calcLitrosInput" value="10" min="1" max="500" step="0.5" oninput="calculateNutrients()">
+            </div>
+            <div class="control-group" style="margin-bottom: 14px;">
+                <label for="calcTypeSelect">Tipo de riego:</label>
+                <select id="calcTypeSelect" onchange="calculateNutrients()">
+                    <option value="nutri">Riego con nutrientes</option>
+                    <option value="water">Agua sola (o lavado final)</option>
+                </select>
+            </div>
+            <div class="calc-result-box" id="calcResultContent">Introduce los datos para calcular la mezcla.</div>
+        </div>
+    </div>
+
+    <div id="view-archive" class="view-section">
+        <div class="stats-card">
+            <h2 style="color: var(--primary); margin-top:0; font-size: 1.25rem;">📊 Estadísticas de cosechas</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Resumen de rendimiento de tus cultivos archivados.</p>
+            <div class="stats-grid">
+                <div class="stat-box"><h4>Cultivos archivados</h4><div class="stat-value" id="statTotalCrops">0</div></div>
+                <div class="stat-box"><h4>Total gramos</h4><div class="stat-value" id="statTotalGrams">0 g</div></div>
+                <div class="stat-box"><h4>Media por cosecha</h4><div class="stat-value" id="statAvgGrams">0 g</div></div>
+                <div class="stat-box"><h4>Récord máximo</h4><div class="stat-value" id="statMaxGrams">0 g</div></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap;">
+            <h2 style="color: var(--primary); margin: 0; font-size: 1.25rem;">Historial de cultivos</h2>
+            <button class="btn btn-save" onclick="openArchiveModal()">📦 Archivar cultivo actual</button>
+        </div>
+        <div id="archiveListContainer"></div>
+    </div>
+
+    <div id="view-settings" class="view-section">
+        <div class="settings-card">
+            <h2>📲 Instalar en el móvil</h2>
+            <p class="muted" style="font-size:0.9rem;">Android (Chrome): menú ⋮ → «Instalar app» o «Añadir a pantalla de inicio».<br>iPhone (Safari): botón Compartir → «Añadir a pantalla de inicio».<br>Para que se instale y funcione sin conexión, el archivo debe estar alojado en una dirección https (por ejemplo GitHub Pages o Netlify Drop), junto con <strong>sw.js</strong>.</p>
+        </div>
+        <div class="settings-card">
+            <h2>💾 Copia de seguridad</h2>
+            <p class="muted" style="font-size:0.9rem;">Tus datos viven solo en este navegador. Si borras los datos del sitio o cambias de móvil, se pierden. Exporta una copia de vez en cuando.</p>
+            <div id="storageInfo" class="muted"></div>
+            <div class="settings-actions">
+                <button class="btn btn-save" onclick="exportData()">⬇️ Exportar copia</button>
+                <button class="btn btn-close" onclick="document.getElementById('importFile').click()">⬆️ Importar copia</button>
+                <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importData(event)">
+            </div>
+        </div>
+        <div class="settings-card">
+            <h2>💧 Frecuencia de riego</h2>
+            <p class="muted" style="font-size:0.9rem;">Cada cuántos días se riega en cada fase. El día 1 siempre se riega; a partir de ahí se cuenta desde el último riego. Cada tercer riego es de agua sola para evitar acumulación de sales, el lavado final es solo agua y los dos últimos días no se riega. Los valores de partida son habituales para tierra o coco; si tu sustrato o maceta retienen más o menos agua, ajústalos (lo ideal es regar cuando la maceta pese claramente menos).</p>
+            <div id="intervalEditor"></div>
+            <div class="settings-actions">
+                <button class="btn btn-close" onclick="resetIntervals()">↺ Restaurar frecuencias</button>
+            </div>
+        </div>
+        <div class="settings-card">
+            <h2>🧪 Dosis de nutrientes (ml por litro)</h2>
+            <p class="muted" style="font-size:0.9rem;">Son valores orientativos de partida para la línea Advanced Nutrients. Contrástalos con la tabla oficial del fabricante y ajústalos a tu cultivo; la calculadora y el calendario usan lo que pongas aquí.</p>
+            <div id="nutriEditor"></div>
+            <div class="settings-actions">
+                <button class="btn btn-close" onclick="resetNutri()">↺ Restaurar valores por defecto</button>
+            </div>
+        </div>
+        <div class="settings-card">
+            <h2>⚠️ Zona de borrado</h2>
+            <p class="muted" style="font-size:0.9rem;">Elimina todos los datos de la app (calendario, notas, fotos e historial).</p>
+            <button class="btn btn-danger" onclick="resetAll()">🗑️ Borrar todo</button>
+        </div>
+    </div>
+
+    <div class="footer-note">Mi Cultivo Indoor Pro · tus datos se guardan solo en tu dispositivo</div>
+</div>
+
+<!-- MODAL DÍA -->
+<div id="dayModal" class="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-content">
+        <h3 id="modalTitle">Detalle del día</h3>
+        <div class="modal-section" id="modalEnv"></div>
+        <div class="modal-section" id="modalLed"></div>
+        <div class="modal-section" id="modalNutri"></div>
+        <div class="modal-section" id="modalTask"></div>
+        <div class="modal-section">
+            <label class="lbl">Estado de riego:</label>
+            <button class="btn btn-water" id="waterDoneBtn" onclick="toggleWaterDone()">💧 Marcar riego como realizado</button>
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="modalNoteInput">Tus anotaciones:</label>
+            <textarea id="modalNoteInput" rows="3" placeholder="Altura, pH, estado de las hojas..."></textarea>
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="modalPhotoInput">Fotos de seguimiento:</label>
+            <input type="file" id="modalPhotoInput" accept="image/*" multiple onchange="handlePhotoUpload(event)" style="font-size: 0.85rem; padding: 6px; border: 1px solid var(--border); border-radius: 8px; width: 100%; background: #FAFAFA;">
+            <div class="photo-preview-container" id="photoPreviewContainer"></div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-close" onclick="closeModal()">Cerrar</button>
+            <button class="btn btn-save" onclick="saveDayData()">Guardar cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CUSTOM -->
+<div id="customModal" class="modal" onclick="if(event.target===this)closeCustom()">
+    <div class="modal-content">
+        <h3 id="customModalTitle">🛠️ Editar especificaciones del día</h3>
+        <p class="muted" style="margin-top:0">Deja un campo vacío para usar el valor automático del plan (se muestra como sugerencia).</p>
+        <div class="modal-section">
+            <label class="lbl" for="editCustomEnv">🌡️ Clima (temperatura / humedad):</label>
+            <input type="text" class="custom-input" id="editCustomEnv">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="editCustomLed">💡 Iluminación LED (horas / potencia / altura):</label>
+            <input type="text" class="custom-input" id="editCustomLed">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="editCustomNutri">🧪 Nutrición / riego:</label>
+            <input type="text" class="custom-input" id="editCustomNutri">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="editCustomTask">📝 Tarea clave:</label>
+            <input type="text" class="custom-input" id="editCustomTask">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="editCustomWater">💧 ¿Hay riego este día?</label>
+            <select class="custom-input" id="editCustomWater">
+                <option value="">Según el plan</option>
+                <option value="1">Sí, hay riego</option>
+                <option value="0">No hay riego</option>
+            </select>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-close small" onclick="customToNotes()">📝 Notas y fotos</button>
+            <button class="btn btn-close small" onclick="resetCustom()">↺ Restaurar plan</button>
+            <button class="btn btn-close" onclick="closeCustom()">Cancelar</button>
+            <button class="btn btn-save" onclick="saveCustom()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ARCHIVO -->
+<div id="archiveModal" class="modal" onclick="if(event.target===this)closeArchiveModal()">
+    <div class="modal-content">
+        <h3>📦 Archivar cultivo</h3>
+        <div class="modal-section">
+            <label class="lbl" for="archName">Genética / nombre:</label>
+            <input type="text" class="custom-input" id="archName">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="archGrams">Peso cosechado (gramos):</label>
+            <input type="number" class="custom-input" id="archGrams" min="0" step="0.1" inputmode="decimal">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="archDate">Fecha de cosecha:</label>
+            <input type="date" class="custom-input" id="archDate">
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="archNotes">Notas finales:</label>
+            <textarea id="archNotes" rows="3" placeholder="Resultado, aromas, qué mejorarías..."></textarea>
+        </div>
+        <div class="modal-section">
+            <label class="lbl" for="archPhotoInput">Foto de la cosecha:</label>
+            <input type="file" id="archPhotoInput" accept="image/*" multiple onchange="handleArchPhotoUpload(event)" style="font-size: 0.85rem; padding: 6px; border: 1px solid var(--border); border-radius: 8px; width: 100%; background: #FAFAFA;">
+            <div class="photo-preview-container" id="archPhotoPreview"></div>
+            <label style="display:block; margin-top:10px; font-size:0.85rem;"><input type="checkbox" id="archIncludePhotos" checked> Incluir hasta 6 fotos de seguimiento del calendario</label>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-close" onclick="closeArchiveModal()">Cancelar</button>
+            <button class="btn btn-save" onclick="saveArchive()">Archivar</button>
+        </div>
+    </div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" alt="Foto ampliada"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ============ CATÁLOGO DE GENÉTICAS (nombre:semanas de floración:tipo) ============ */
+const STRAIN_RAW = [
+'Northern Lights:8:I','Afghani:8:I','Hindu Kush:8:I','Granddaddy Purple:8:I','Purple Kush:8:I','Bubba Kush:8:I',
+'OG Kush:9:H','Master Kush:8:I','Blueberry:8:I','Critical Mass:8:I','Critical+:8:I','Cheese:8:H','Big Bud:8:I',
+'9 Pound Hammer:9:I','Do-Si-Dos:9:I','Gorilla Glue #4:9:H','Gelato:9:H','Wedding Cake:8:I','Zkittlez:8:I',
+'Purple Punch:8:I','Skywalker OG:8:I','Kosher Kush:9:I','LA Confidential:8:I','Platinum OG:8:I','Death Bubba:8:I',
+'White Rhino:8:I','Mazar:8:I','Blue Cheese:8:I','Girl Scout Cookies:9:H','Sour Diesel:10:S','Super Silver Haze:10:S',
+'Amnesia Haze:11:S','Lemon Haze:10:S','Super Lemon Haze:10:S','Jack Herer:10:S','Green Crack:9:S','Durban Poison:9:S',
+'Purple Haze:10:S','Strawberry Cough:9:S','Blue Dream:9:H','White Widow:8:H','AK-47:8:H','White Russian:8:H',
+'Bruce Banner:9:H','Trainwreck:9:H','Chemdawg:9:H','Sunset Sherbet:9:H','Runtz:9:H','Gushers:9:H','Cherry Pie:9:H',
+'Pineapple Express:9:H','Tangie:9:S','Mimosa:9:H','Acapulco Gold:10:S','Panama Red:11:S','Thai:12:S','Haze Original:12:S',
+'Cinderella 99:8:S','Ghost Train Haze:11:S','Black Domina:8:I','Power Plant:9:S','Kali Mist:9:S','Amnesia Lemon:10:S',
+'Orange Bud:8:H','Fruity Pebbles OG:9:H','Jungle Cake:9:H','Biscotti:9:H','Apple Fritter:9:H','Slurricane:9:I',
+'MAC (Miracle Alien Cookies):9:H','Ice Cream Cake:8:I','Banana Kush:9:H','Lemon Skunk:8:H','Skunk #1:8:H',
+'Early Skunk:7:H','Early Girl:7:H','Chocolope:9:S','Sweet Tooth:8:H','Strawberry Banana:9:H','Mango Kush:9:H',
+'Space Queen:9:H','Tahoe OG:9:I','Fire OG:9:H','Headband:9:H','Sage:10:S','Stardawg:9:H','Pink Kush:8:I',
+'Moby Dick:10:S','Dutch Treat:8:H','NYC Diesel:10:S',
+'Northern Lights Auto:7:A','Gorilla Glue Auto:8:A','Blue Dream Auto:8:A','White Widow Auto:8:A','Amnesia Haze Auto:9:A',
+'Critical Auto:8:A','Cheese Auto:8:A','Girl Scout Cookies Auto:8:A','Lemon Haze Auto:9:A','AK-47 Auto:8:A',
+'Sour Diesel Auto:9:A','Gelato Auto:8:A'
+];
+const STRAINS = STRAIN_RAW.map(l => { const p = l.split(':'); return { name: p[0], weeks: +p[1], type: p[2] }; });
+const TYPE_LABEL = { I: 'Indica', S: 'Sativa', H: 'Híbrida', A: 'Autofloreciente' };
+
+/* ============ UTILIDADES ============ */
+const KEY = 'cultivoIndoorPro_v1';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const fmt = n => (Math.round(n * 10) / 10).toLocaleString('es-ES');
+function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function parseISO(s) { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function addDays(s, n) { const d = parseISO(s); d.setDate(d.getDate() + n); return d; }
+function todayISO() { return iso(new Date()); }
+function diffDays(a, b) { return Math.round((parseISO(b) - parseISO(a)) / 86400000); }
+const fmtDate = d => d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+
+/* ============ ESTADO ============ */
+const DEF_NUTRI = {
+    day1: [{ n: 'Voodoo Juice', d: 1 }],
+    seedling: [{ n: 'Voodoo Juice', d: 1 }, { n: 'pH Perfect Sensi Grow A', d: 1 }, { n: 'pH Perfect Sensi Grow B', d: 1 }],
+    veg: [{ n: 'pH Perfect Sensi Grow A', d: 2 }, { n: 'pH Perfect Sensi Grow B', d: 2 }, { n: 'Voodoo Juice', d: 2 }, { n: 'B-52', d: 1 }],
+    bloom1: [{ n: 'pH Perfect Sensi Bloom A', d: 2 }, { n: 'pH Perfect Sensi Bloom B', d: 2 }, { n: 'Voodoo Juice', d: 2 }, { n: 'B-52', d: 1 }],
+    bloom2: [{ n: 'pH Perfect Sensi Bloom A', d: 3 }, { n: 'pH Perfect Sensi Bloom B', d: 3 }, { n: 'Big Bud', d: 1.5 }, { n: 'Bud Candy', d: 1.5 }],
+    bloom3: [{ n: 'pH Perfect Sensi Bloom A', d: 3 }, { n: 'pH Perfect Sensi Bloom B', d: 3 }, { n: 'Overdrive', d: 1 }, { n: 'Bud Candy', d: 2 }],
+    flush: []
+};
+const PHASE_ROWS = [
+    ['seedling', '🌱 Plántula'], ['veg', '🌿 Vegetativo'], ['bloom1', '🌸 Floración temprana (semanas 1–3)'],
+    ['bloom2', '🌺 Floración media'], ['bloom3', '🍂 Floración final (4 últimas antes del lavado)'], ['flush', '🚿 Lavado final']
+];
+/* pH ideal del agua de riego según sustrato */
+const MEDIUMS = {
+    tierra: { label: 'Tierra', range: '6.2–6.8', target: '6.5' },
+    coco: { label: 'Coco', range: '5.8–6.2', target: '6.0' },
+    hidro: { label: 'Hidroponía', range: '5.6–6.0', target: '5.8' }
+};
+const NUTRI_ROWS = [['day1', '💧 Día 1 (riego inicial)']].concat(PHASE_ROWS);
+/* Días entre riegos por fase (valores de partida para sustrato tipo tierra/coco; editables en Ajustes) */
+const DEF_INTERVALS = { seedling: 3, veg: 3, bloom1: 2, bloom2: 2, bloom3: 3, flush: 3 };
+function defaults() { return { medium: 'tierra', strain: '', type: 'H', start: todayISO(), plants: 9, veg: 4, flower: 9, days: {}, archive: [], nutri: clone(DEF_NUTRI), intervals: clone(DEF_INTERVALS), ui: { n: 'week', c: 'week' } }; }
+function normalize(o) {
+    if (!o.nutri) o.nutri = clone(DEF_NUTRI);
+    if (!o.nutri.day1) o.nutri.day1 = clone(DEF_NUTRI.day1);
+    o.intervals = Object.assign(clone(DEF_INTERVALS), o.intervals || {});
+    o.ui = Object.assign({ n: 'week', c: 'week' }, o.ui || {});
+    if (!MEDIUMS[o.medium]) o.medium = 'tierra';
+    return o;
+}
+let S = defaults();
+let curTab = 'calendar';
+const activeWeek = { n: null, c: null };
+
+function load() {
+    try {
+        const r = localStorage.getItem(KEY);
+        if (r) { S = normalize(Object.assign(defaults(), JSON.parse(r))); }
+    } catch (e) { /* sin datos */ }
+}
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3500); }
+function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+    catch (e) { toast('⚠️ Almacenamiento lleno. Exporta una copia en Ajustes y elimina fotos.'); return false; }
+}
+function rec(d) { return S.days[d] || (S.days[d] = {}); }
+
+/* ============ LÓGICA DEL CICLO ============ */
+const totalWeeks = () => 1 + S.veg + S.flower;
+const totalDays = () => totalWeeks() * 7;
+const todayIdx = () => diffDays(S.start, todayISO());
+
+function phaseInfo(w) {
+    if (w === 0) return { key: 'seedling', label: 'Plántula', icon: '🌱' };
+    if (w <= S.veg) return { key: 'veg', label: 'Vegetativo', icon: '🌿' };
+    const fw = w - 1 - S.veg;
+    if (fw === S.flower - 1) return { key: 'flush', label: 'Lavado final', icon: '🚿' };
+    if (fw < 3) return { key: 'bloom1', label: 'Floración temprana', icon: '🌸' };
+    if (fw >= S.flower - 4) return { key: 'bloom3', label: 'Floración final', icon: '🍂' };
+    return { key: 'bloom2', label: 'Floración media', icon: '🌺' };
+}
+const ENV = {
+    seedling: '24–26 °C · HR 65–70 %', veg: '23–27 °C · HR 55–65 %', bloom1: '22–26 °C · HR 50–55 %',
+    bloom2: '21–25 °C · HR 45–50 %', bloom3: '20–24 °C · HR 40–45 %', flush: '20–24 °C · HR 40 %'
+};
+const LED_POW = { seedling: '30–40 %', veg: '60–80 %', bloom1: '80–90 %', bloom2: '90–100 %', bloom3: '90–100 %', flush: '80 %' };
+const LED_DIST = { seedling: '60 cm', veg: '45–60 cm', bloom1: '40–50 cm', bloom2: '40–50 cm', bloom3: '40–50 cm', flush: '40–50 cm' };
+function ledText(key) {
+    const h = (S.type === 'A' || key === 'seedling' || key === 'veg') ? '18/6' : '12/12';
+    return h + ' · ' + LED_POW[key] + ' · a ' + LED_DIST[key];
+}
+function weekTask(w) {
+    const ph = phaseInfo(w), auto = S.type === 'A';
+    if (w === 0) return 'Mantén el sustrato húmedo (sin encharcar) y vigila el brote';
+    if (ph.key === 'veg') {
+        if (w === 1) return 'Trasplante a maceta definitiva y primer entrenamiento suave';
+        if (w === S.veg) return auto ? 'Entrenamiento suave (LST); evita podas fuertes' : 'Prepara el cambio a floración: ajusta altura y poda';
+        return 'Entrenamiento (LST/poda) y control de plagas';
+    }
+    const fw = w - 1 - S.veg;
+    if (ph.key === 'bloom1') {
+        if (fw === 0) return auto ? 'Inicio de floración automática' : 'Cambio a 12/12: inicio de floración';
+        return 'Fase de estirón: sube el panel y sujeta las ramas';
+    }
+    if (ph.key === 'bloom2') return 'Control de plagas y humedad; sujeta ramas con cogollos pesados';
+    if (ph.key === 'bloom3') return 'Revisa los tricomas con lupa para decidir el momento de corte';
+    return 'Riego solo con agua y planifica cosecha y secado';
+}
+/* Calendario de riegos: se calcula de forma continua desde el día 1 (no por semanas sueltas).
+   El día 1 siempre se riega (agua sola para asentar el sustrato) y cada riego siguiente
+   se separa según la fase en la que está el cultivo (ver S.intervals). Cada 3.er riego
+   es de agua sola para evitar acumulación de sales; el lavado final es todo agua sola y
+   los dos últimos días antes de la cosecha no se riega. */
+let schedCache = { key: '', data: [] };
+function buildSchedule() {
+    const td = totalDays();
+    const key = [S.veg, S.flower, JSON.stringify(S.intervals)].join('|');
+    if (schedCache.key === key && schedCache.data.length === td) return schedCache.data;
+    const sched = [];
+    for (let i = 0; i < td; i++) sched.push({ water: false, wtype: 'water', reason: '' });
+    let d = 0, k = 0;
+    while (d < Math.max(1, td - 2)) {
+        const ph = phaseInfo(Math.floor(d / 7));
+        let wtype = 'nutri', reason = '';
+        if (d === 0) { wtype = 'nutri'; reason = 'riego inicial'; }
+        else if (ph.key === 'flush') { wtype = 'water'; reason = 'lavado final'; }
+        else if (k % 3 === 0) { wtype = 'water'; reason = 'descanso de abono para evitar acumulación de sales'; }
+        sched[d] = { water: true, wtype: wtype, reason: reason };
+        k++;
+        d += Math.max(1, parseInt(S.intervals[ph.key], 10) || 2);
+    }
+    schedCache = { key: key, data: sched };
+    return sched;
+}
+function dayData(d, raw) {
+    const w = Math.floor(d / 7), dow = d % 7, ph = phaseInfo(w);
+    const sc = buildSchedule()[d] || { water: false, wtype: 'water', reason: '' };
+    let water = sc.water;
+    const wtype = sc.wtype;
+    let task = '';
+    if (dow === 0) task = weekTask(w); else if (dow === 3) task = 'Revisa el envés de las hojas y el pH/EC del drenaje';
+    if (d === 0) task = 'Siembra y riego inicial: humedece bien el sustrato sin encharcar';
+    if (d === totalDays() - 1) task = '🌾 Día estimado de cosecha';
+    const c = raw ? {} : ((S.days[d] && S.days[d].c) || {});
+    let env = ENV[ph.key], led = ledText(ph.key);
+    if (c.env) env = c.env;
+    if (c.led) led = c.led;
+    if (c.task) task = c.task;
+    if (typeof c.water === 'boolean') water = c.water;
+    let nutri;
+    const list = (d === 0 ? S.nutri.day1 : S.nutri[ph.key]) || [];
+    let isNutri = false;
+    if (c.nutri) nutri = c.nutri;
+    else if (!water) nutri = 'Sin riego';
+    else if (d === 0 && list.length) { isNutri = true; nutri = 'Riego inicial: agua + ' + list.map(p => p.n.replace(/^pH Perfect /, '')).join(' + '); }
+    else if (wtype === 'nutri' && list.length) { isNutri = true; nutri = 'Riego con nutrientes'; }
+    else nutri = 'Agua sola' + (sc.reason && sc.water ? ' (' + sc.reason + ')' : '');
+    const mix = (water && isNutri && !c.nutri) ? list.map(p => ({ n: p.n.replace(/^pH Perfect /, ''), d: p.d })) : [];
+    const phr = MEDIUMS[S.medium] || MEDIUMS.tierra;
+    return { d: d, w: w, dow: dow, ph: ph, water: water, mix: mix, phr: phr, wtype: isNutri ? 'nutri' : 'water', env: env, led: led, task: task, nutri: nutri, date: addDays(S.start, d), rec: S.days[d] || {} };
+}
+
+/* ============ RENDER CALENDARIO ============ */
+function phLine(x) { return x.water ? '🧫 pH ideal del agua: <b>' + x.phr.range + '</b> (objetivo ' + x.phr.target + ')' : ''; }
+function cardHTML(x, custom) {
+    const r = x.rec, done = !!r.done, cls = ['day-card'];
+    if (x.water) cls.push('water-day');
+    if (done) cls.push('done-day');
+    if (x.d === todayIdx()) cls.push('today-card');
+    const nPh = (r.photos || []).length;
+    let badges = '';
+    if (r.note) badges += '<span class="note-badge">📝 Nota</span>';
+    if (nPh) badges += '<span class="photo-badge">📷 ' + nPh + '</span>';
+    if (r.c && Object.keys(r.c).length) badges += '<span class="edit-badge">✏️ Editado</span>';
+    let actions = '';
+    if (custom) {
+        actions = '<div class="card-actions">' +
+            (x.water ? '<button class="mini-btn water" data-act="water">' + (done ? '↩ Deshacer' : '💧 Regado') + '</button>' : '') +
+            '<button class="mini-btn" data-act="edit">✏️ Editar</button></div>';
+    }
+    return '<div class="' + cls.join(' ') + '" data-day="' + x.d + '"><div>' +
+        '<div class="day-header"><span>Día ' + (x.d + 1) + '</span><span>' + (x.water ? (done ? '✅' : '💧') : '') + '</span></div>' +
+        '<div class="date-tag">' + esc(fmtDate(x.date)) + '</div>' +
+        '<div class="env-tag">🌡️ ' + esc(x.env) + '</div>' +
+        '<div class="led-tag">💡 ' + esc(x.led) + '</div>' +
+        '<div class="nutri-tag">🧪 ' + esc(x.nutri) + '</div>' +
+        (x.water ? '<div class="ph-tag">' + phLine(x) + '</div>' : '') +
+        x.mix.map(p => '<div class="mix-tag">• ' + esc(p.n) + ' <b>' + fmt(p.d) + ' ml/L</b></div>').join('') +
+        (x.task ? '<div class="task-tag">📝 ' + esc(x.task) + '</div>' : '') +
+        '</div><div>' + (badges ? '<div class="badges-row">' + badges + '</div>' : '') + actions + '</div></div>';
+}
+function renderWeeks(custom) {
+    const k = custom ? 'c' : 'n';
+    const tabs = $(custom ? 'customWeekTabs' : 'weekTabs'), cont = $(custom ? 'customWeeksContent' : 'weeksContent');
+    const tw = totalWeeks(), t = todayIdx();
+    if (activeWeek[k] === null || activeWeek[k] >= tw) activeWeek[k] = Math.min(tw - 1, Math.max(0, Math.floor(t / 7)));
+    const cur = Math.floor(t / 7), w = activeWeek[k];
+    const view = S.ui[k] === 'grid' ? 'grid' : 'week';
+    $(custom ? 'viewToggleC' : 'viewToggleN').innerHTML =
+        '<button class="' + (view === 'week' ? 'active' : '') + '" data-view="week">📅 Semana</button>' +
+        '<button class="' + (view === 'grid' ? 'active' : '') + '" data-view="grid">🔲 Cuadrícula</button>';
+    if (view === 'grid') { tabs.style.display = 'none'; cont.innerHTML = gridHTML(custom); return; }
+    tabs.style.display = '';
+    let th = '';
+    for (let i = 0; i < tw; i++) th += '<button class="tab-btn ' + (i === w ? 'active' : '') + '" data-w="' + i + '">' + phaseInfo(i).icon + ' S' + (i + 1) + (i === cur && t >= 0 ? ' •' : '') + '</button>';
+    tabs.innerHTML = th;
+    const ph = phaseInfo(w);
+    let cards = '';
+    for (let i = 0; i < 7; i++) cards += cardHTML(dayData(w * 7 + i), custom);
+    cont.innerHTML = '<div class="week-container active"><div class="week-header"><span>Semana ' + (w + 1) + ' de ' + tw + '</span><span>' + ph.icon + ' ' + ph.label + '</span></div><div class="grid-days">' + cards + '</div></div>';
+}
+/* Vista cuadrícula: todas las semanas de un vistazo (una fila por semana, siete días por fila) */
+function gridHTML(custom) {
+    const tw = totalWeeks(), t = todayIdx();
+    let nW = 0, nN = 0, rows = '';
+    for (let w = 0; w < tw; w++) {
+        const ph = phaseInfo(w);
+        let cells = '';
+        for (let i = 0; i < 7; i++) {
+            const x = dayData(w * 7 + i), r = x.rec, done = !!r.done, cls = ['gv-cell'];
+            if (x.water) { cls.push(x.wtype === 'nutri' ? 'gv-nutri' : 'gv-water'); nW++; if (x.wtype === 'nutri') nN++; }
+            if (done) cls.push('gv-done');
+            if (x.d === t) cls.push('gv-today');
+            let ico = '';
+            if (x.water) ico = done ? '✅' : (x.wtype === 'nutri' ? '💧' : '🚿');
+            const dd = String(x.date.getDate()).padStart(2, '0') + '/' + String(x.date.getMonth() + 1).padStart(2, '0');
+            const marks = (r.note ? '📝' : '') + ((r.photos || []).length ? '📷' : '') + (r.c && Object.keys(r.c).length ? '✏️' : '');
+            cells += '<div class="' + cls.join(' ') + '" data-day="' + x.d + '"><b>' + (x.d + 1) + '</b>' +
+                '<span class="gv-ico"' + (custom && x.water ? ' data-act="water"' : '') + '>' + ico + '</span>' +
+                '<small>' + dd + '</small><em>' + marks + '</em></div>';
+        }
+        rows += '<div class="gv-row"><div class="gv-wk" data-wk="' + w + '"><b>S' + (w + 1) + '</b><small>' + ph.icon + ' ' + ph.label + '</small></div>' + cells + '</div>';
+    }
+    return '<div class="gv-wrap"><div class="gv-legend">💧 riego con nutrientes · 🚿 agua sola · ✅ hecho · borde azul = hoy · ' +
+        nW + ' riegos en total (' + nN + ' con nutrientes)</div>' + rows +
+        '<p class="muted" style="margin:10px 0 0">' + (custom ? 'Toca un día para editarlo o el icono para marcar el riego.' : 'Toca un día para ver el detalle, anotar o subir fotos.') + ' Toca «S1», «S2»… para ir a esa semana.</p></div>';
+}
+function bindWeeks(custom) {
+    const k = custom ? 'c' : 'n';
+    const tabs = $(custom ? 'customWeekTabs' : 'weekTabs'), cont = $(custom ? 'customWeeksContent' : 'weeksContent'), tog = $(custom ? 'viewToggleC' : 'viewToggleN');
+    tog.addEventListener('click', e => {
+        const b = e.target.closest('[data-view]'); if (!b) return;
+        S.ui[k] = b.dataset.view; save(); renderWeeks(custom);
+    });
+    tabs.addEventListener('click', e => {
+        const b = e.target.closest('[data-w]'); if (!b) return;
+        activeWeek[k] = +b.dataset.w; renderWeeks(custom);
+    });
+    cont.addEventListener('click', e => {
+        const wk = e.target.closest('[data-wk]');
+        if (wk) { activeWeek[k] = +wk.dataset.wk; S.ui[k] = 'week'; save(); renderWeeks(custom); return; }
+        const card = e.target.closest('.day-card,.gv-cell'); if (!card) return;
+        const d = +card.dataset.day, btn = e.target.closest('[data-act]');
+        if (btn) { if (btn.dataset.act === 'water') quickWater(d); else openCustom(d); return; }
+        if (custom) openCustom(d); else openDay(d);
+    });
+}
+function quickWater(d) { const r = rec(d); r.done = !r.done; save(); renderAll(); }
+
+/* ============ ESTADO, ALERTA, PANEL SUPERIOR ============ */
+function renderStatus() {
+    const t = todayIdx(), td = totalDays(), name = S.strain || 'Sin genética elegida';
+    let txt;
+    if (t < 0) txt = '⏳ Empieza en ' + (-t) + ' día' + (t === -1 ? '' : 's') + ' · ' + esc(name);
+    else if (t >= td) txt = '🌾 Ciclo completado (' + td + ' días). ¡Archívalo en Historial!';
+    else {
+        const w = Math.floor(t / 7), ph = phaseInfo(w), left = td - t - 1;
+        txt = ph.icon + ' Día ' + (t + 1) + ' de ' + td + ' · Semana ' + (w + 1) + ' · ' + ph.label + ' · Cosecha en ' + left + ' día' + (left === 1 ? '' : 's') + ' (' + esc(fmtDate(addDays(S.start, td - 1))) + ')';
+    }
+    $('liveCountdown').innerHTML = txt;
+}
+function renderAlert() {
+    const b = $('smartAlertBanner'), t = todayIdx();
+    if (t < 0 || t >= totalDays()) { b.style.display = 'none'; return; }
+    let dis = false;
+    try { dis = sessionStorage.getItem('alertDis') === todayISO(); } catch (e) { /* nada */ }
+    const x = dayData(t);
+    if (x.water && !x.rec.done && !dis) {
+        $('alertBannerText').textContent = '💧 Hoy toca riego (día ' + (t + 1) + '): ' + x.nutri;
+        b.style.display = 'flex';
+    } else b.style.display = 'none';
+}
+function dismissAlert() { try { sessionStorage.setItem('alertDis', todayISO()); } catch (e) { /* nada */ } $('smartAlertBanner').style.display = 'none'; }
+function alertDone() { const t = todayIdx(); if (t >= 0) { rec(t).done = true; save(); renderAll(); } }
+
+function syncDashboard() {
+    $('strainSearchInput').value = S.strain;
+    $('startDateInput').value = S.start;
+    $('plantsCountInput').value = S.plants;
+    $('vegWeeksInput').value = S.veg;
+    $('flowerWeeksInput').value = S.flower;
+    $('mediumSelect').value = S.medium;
+}
+function clampNum(v, a, b, def) { v = parseInt(v, 10); if (isNaN(v)) return def; return Math.min(b, Math.max(a, v)); }
+function updateSettings() {
+    const sd = $('startDateInput').value;
+    if (sd) S.start = sd;
+    S.plants = clampNum($('plantsCountInput').value, 1, 100, S.plants);
+    S.veg = clampNum($('vegWeeksInput').value, 0, 16, S.veg);
+    S.flower = clampNum($('flowerWeeksInput').value, 1, 20, S.flower);
+    if (MEDIUMS[$('mediumSelect').value]) S.medium = $('mediumSelect').value;
+    syncDashboard(); activeWeek.n = activeWeek.c = null; save(); renderAll();
+}
+function applyStrain(st) {
+    const prev = S.type;
+    S.strain = st.name; S.type = st.type; S.flower = st.weeks;
+    if (st.type === 'A') S.veg = 3; else if (prev === 'A') S.veg = 4;
+    syncDashboard(); activeWeek.n = activeWeek.c = null; save(); renderAll();
+    $('strainDropdownList').style.display = 'none';
+}
+function renderDropdown(q, showAll) {
+    const l = $('strainDropdownList'), s = showAll ? '' : q.trim().toLowerCase();
+    const res = [];
+    STRAINS.forEach((x, i) => { if (x.name.toLowerCase().indexOf(s) !== -1) res.push('<div class="search-dropdown-item" data-i="' + i + '">' + esc(x.name) + ' <small>· ' + x.weeks + ' sem · ' + TYPE_LABEL[x.type] + '</small></div>'); });
+    l.innerHTML = res.join('') || '<div class="search-dropdown-item" style="cursor:default;color:#888">Sin coincidencias: se usará tu texto como genética personalizada</div>';
+    l.style.display = 'block';
+}
+function showStrainDropdown() { renderDropdown('', true); }
+function filterStrains() { renderDropdown($('strainSearchInput').value, false); }
+
+/* ============ MODAL DÍA ============ */
+let curDay = null, tmpPhotos = [];
+function openLightbox(src) { $('lightboxImg').src = src; $('lightbox').style.display = 'flex'; }
+function openDay(d) {
+    curDay = d;
+    const x = dayData(d);
+    $('modalTitle').textContent = 'Día ' + (d + 1) + ' · ' + fmtDate(x.date) + ' · Semana ' + (x.w + 1);
+    $('modalEnv').innerHTML = '🌡️ <strong>Clima:</strong> ' + esc(x.env);
+    $('modalLed').innerHTML = '💡 <strong>Iluminación LED:</strong> ' + esc(x.led);
+    $('modalNutri').innerHTML = '🧪 <strong>Nutrición / riego:</strong> ' + esc(x.nutri) +
+        (x.water ? '<div style="margin-top:6px;color:#075985">' + phLine(x) + '</div>' : '') +
+        (x.mix.length ? '<div style="margin-top:6px"><strong>Por cada litro de agua:</strong><ul style="margin:4px 0 0 18px;padding:0">' + x.mix.map(p => '<li>' + esc(p.n) + ' — <b>' + fmt(p.d) + ' ml/L</b></li>').join('') + '</ul></div>' +
+            '<div class="muted" style="margin-top:6px">Añade los productos de uno en uno, removiendo, y mide el pH al final. La línea pH Perfect está pensada para estabilizar el pH sola, pero conviene medirlo igualmente.</div>' : '');
+    $('modalTask').innerHTML = '📝 <strong>Tarea clave:</strong> ' + esc(x.task || '—');
+    $('modalNoteInput').value = x.rec.note || '';
+    tmpPhotos = (x.rec.photos || []).slice();
+    renderPhotos(); updWaterBtn();
+    $('dayModal').style.display = 'flex';
+}
+function updWaterBtn() {
+    const done = !!(S.days[curDay] && S.days[curDay].done), b = $('waterDoneBtn');
+    b.textContent = done ? '✅ Riego realizado (pulsa para deshacer)' : '💧 Marcar riego como realizado';
+    b.classList.toggle('done', done);
+}
+function toggleWaterDone() { const r = rec(curDay); r.done = !r.done; save(); updWaterBtn(); renderAll(); }
+function closeModal() { $('dayModal').style.display = 'none'; }
+function saveDayData() {
+    const r = rec(curDay);
+    r.note = $('modalNoteInput').value.trim();
+    r.photos = tmpPhotos.slice();
+    if (!r.note) delete r.note;
+    if (!r.photos.length) delete r.photos;
+    if (save()) { closeModal(); renderAll(); toast('Guardado ✓'); }
+}
+function compressImage(file, max, q) {
+    max = max || 720; q = q || 0.65;
+    return new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onerror = rej;
+        fr.onload = () => {
+            const img = new Image();
+            img.onerror = rej;
+            img.onload = () => {
+                const k = Math.min(1, max / Math.max(img.width, img.height));
+                const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+                const c = document.createElement('canvas'); c.width = w; c.height = h;
+                c.getContext('2d').drawImage(img, 0, 0, w, h);
+                res(c.toDataURL('image/jpeg', q));
+            };
+            img.src = fr.result;
+        };
+        fr.readAsDataURL(file);
+    });
+}
+async function handlePhotoUpload(ev) {
+    const files = Array.prototype.slice.call(ev.target.files);
+    for (const f of files) { try { tmpPhotos.push(await compressImage(f)); } catch (e) { toast('No se pudo leer una imagen'); } }
+    ev.target.value = ''; renderPhotos();
+}
+function thumbsHTML(arr) { return arr.map((p, i) => '<div class="thumb-wrap"><img class="photo-thumb" src="' + p + '" data-i="' + i + '" alt="Foto"><button class="thumb-x" data-x="' + i + '" aria-label="Quitar foto">×</button></div>').join(''); }
+function renderPhotos() { $('photoPreviewContainer').innerHTML = thumbsHTML(tmpPhotos); }
+
+/* ============ MODAL CUSTOM ============ */
+let curCustom = null;
+function openCustom(d) {
+    curCustom = d;
+    const x = dayData(d, true), c = (S.days[d] && S.days[d].c) || {};
+    $('customModalTitle').textContent = '🛠️ Día ' + (d + 1) + ' · ' + fmtDate(x.date);
+    $('editCustomEnv').value = c.env || ''; $('editCustomEnv').placeholder = x.env;
+    $('editCustomLed').value = c.led || ''; $('editCustomLed').placeholder = x.led;
+    $('editCustomNutri').value = c.nutri || ''; $('editCustomNutri').placeholder = x.nutri;
+    $('editCustomTask').value = c.task || ''; $('editCustomTask').placeholder = x.task || 'Sin tarea';
+    $('editCustomWater').value = typeof c.water === 'boolean' ? (c.water ? '1' : '0') : '';
+    $('customModal').style.display = 'flex';
+}
+function closeCustom() { $('customModal').style.display = 'none'; }
+function saveCustom() {
+    const c = {}, g = id => $(id).value.trim();
+    if (g('editCustomEnv')) c.env = g('editCustomEnv');
+    if (g('editCustomLed')) c.led = g('editCustomLed');
+    if (g('editCustomNutri')) c.nutri = g('editCustomNutri');
+    if (g('editCustomTask')) c.task = g('editCustomTask');
+    const w = $('editCustomWater').value;
+    if (w !== '') c.water = w === '1';
+    const r = rec(curCustom);
+    if (Object.keys(c).length) r.c = c; else delete r.c;
+    if (save()) { closeCustom(); renderAll(); toast('Día actualizado ✓'); }
+}
+function resetCustom() {
+    const r = rec(curCustom); delete r.c; save(); closeCustom(); renderAll(); toast('Restaurado al plan automático');
+}
+function customToNotes() { const d = curCustom; closeCustom(); openDay(d); }
+
+/* ============ CALCULADORA ============ */
+function renderCalcSelect() {
+    const sel = $('calcWeekSelect'), keep = sel.value, tw = totalWeeks();
+    let o = '<option value="-1">Día 1 · Riego inicial</option>';
+    for (let w = 0; w < tw; w++) o += '<option value="' + w + '">Semana ' + (w + 1) + ' · ' + phaseInfo(w).label + '</option>';
+    sel.innerHTML = o;
+    if (keep !== '' && +keep < tw) sel.value = keep;
+    else sel.value = todayIdx() === 0 ? '-1' : String(Math.min(tw - 1, Math.max(0, Math.floor(todayIdx() / 7))));
+}
+function calculateNutrients() {
+    const out = $('calcResultContent');
+    const w = +$('calcWeekSelect').value, L = parseFloat($('calcLitrosInput').value), type = $('calcTypeSelect').value;
+    if (!(L > 0)) { out.textContent = 'Introduce los litros del tanque.'; return; }
+    const ph = w === -1 ? { key: 'day1', label: 'Riego inicial', icon: '💧' } : phaseInfo(w), list = S.nutri[ph.key] || [];
+    let h = '<strong>' + (w === -1 ? 'Día 1' : 'Semana ' + (w + 1)) + ' · ' + ph.icon + ' ' + ph.label + '</strong><br>Tanque: <strong>' + fmt(L) + ' L</strong> · Plantas: <strong>' + S.plants + '</strong> → ≈ <strong>' + fmt(L / S.plants) + ' L por planta</strong><br>🧫 pH ideal del agua (' + (MEDIUMS[S.medium] || MEDIUMS.tierra).label.toLowerCase() + '): <strong>' + (MEDIUMS[S.medium] || MEDIUMS.tierra).range + '</strong> (objetivo ' + (MEDIUMS[S.medium] || MEDIUMS.tierra).target + ')<br><br>';
+    if (type === 'water' || !list.length) {
+        h += '💧 Solo agua: llena el tanque con <strong>' + fmt(L) + ' L</strong> de agua, sin aditivos.';
+    } else {
+        h += '<table class="calc-table"><tr><th>Producto</th><th>ml/L</th><th>Total tanque</th></tr>' +
+            list.map(p => '<tr><td>' + esc(p.n) + '</td><td>' + fmt(p.d) + '</td><td><strong>' + fmt(p.d * L) + ' ml</strong></td></tr>').join('') +
+            '</table><p class="muted">Añade los productos de uno en uno, removiendo entre cada uno, y comprueba el pH final.</p>';
+    }
+    h += '<p class="muted">Dosis orientativas editables en Ajustes; contrástalas con la tabla oficial del fabricante.</p>';
+    out.innerHTML = h;
+}
+
+/* ============ HISTORIAL ============ */
+let tmpArch = [];
+function openArchiveModal() {
+    $('archName').value = S.strain || ''; $('archGrams').value = ''; $('archDate').value = todayISO(); $('archNotes').value = '';
+    $('archIncludePhotos').checked = true; tmpArch = []; renderArchPhotos();
+    $('archiveModal').style.display = 'flex';
+}
+function closeArchiveModal() { $('archiveModal').style.display = 'none'; }
+function renderArchPhotos() { $('archPhotoPreview').innerHTML = thumbsHTML(tmpArch); }
+async function handleArchPhotoUpload(ev) {
+    const files = Array.prototype.slice.call(ev.target.files);
+    for (const f of files) { try { tmpArch.push(await compressImage(f)); } catch (e) { toast('No se pudo leer una imagen'); } }
+    ev.target.value = ''; renderArchPhotos();
+}
+function cyclePhotos() {
+    const all = [];
+    Object.keys(S.days).map(Number).sort((a, b) => a - b).forEach(d => { (S.days[d].photos || []).forEach(p => all.push(p)); });
+    if (all.length <= 6) return all;
+    const out = [];
+    for (let i = 0; i < 6; i++) out.push(all[Math.round(i * (all.length - 1) / 5)]);
+    return out;
+}
+function saveArchive() {
+    const g = parseFloat($('archGrams').value);
+    const entry = {
+        id: Date.now(), name: $('archName').value.trim() || 'Cultivo sin nombre', type: S.type, start: S.start,
+        end: $('archDate').value || todayISO(), plants: S.plants, weeks: totalWeeks(),
+        grams: g > 0 ? g : 0, notes: $('archNotes').value.trim(),
+        photos: tmpArch.concat($('archIncludePhotos').checked ? cyclePhotos() : [])
+    };
+    S.archive.unshift(entry);
+    if (!save()) { S.archive.shift(); return; }
+    closeArchiveModal(); renderAll(); toast('Cultivo archivado ✓');
+    if (confirm('Cultivo archivado.\n¿Quieres reiniciar el ciclo actual (borra riegos, notas y fotos del calendario) para empezar uno nuevo?')) {
+        S.days = {}; S.start = todayISO(); activeWeek.n = activeWeek.c = null; save(); syncDashboard(); renderAll();
+    }
+}
+function renderArchive() {
+    const A = S.archive, n = A.length, tot = A.reduce((s, a) => s + (a.grams || 0), 0), mx = A.reduce((m, a) => Math.max(m, a.grams || 0), 0);
+    $('statTotalCrops').textContent = n;
+    $('statTotalGrams').textContent = fmt(tot) + ' g';
+    $('statAvgGrams').textContent = fmt(n ? tot / n : 0) + ' g';
+    $('statMaxGrams').textContent = fmt(mx) + ' g';
+    if (!n) { $('archiveListContainer').innerHTML = '<p class="muted" style="text-align:center">Aún no hay cultivos archivados.</p>'; return; }
+    $('archiveListContainer').innerHTML = A.map(a => {
+        const ph = a.photos || [];
+        const cover = ph.length ? '<img class="archive-photo" src="' + ph[0] + '" data-a="' + a.id + '" data-i="0" alt="Portada">' : '<div class="archive-photo noimg">🌿</div>';
+        const extra = ph.length > 1 ? '<div class="archive-extra">' + ph.slice(1).map((p, i) => '<img src="' + p + '" data-a="' + a.id + '" data-i="' + (i + 1) + '" alt="Foto">').join('') + '</div>' : '';
+        return '<div class="archive-card">' + cover + '<div style="flex:1;min-width:0">' +
+            '<strong style="font-size:1.05rem;color:var(--primary)">' + esc(a.name) + '</strong>' +
+            '<div class="muted">' + esc(TYPE_LABEL[a.type] || '') + ' · ' + a.plants + ' plantas · ' + a.weeks + ' semanas</div>' +
+            '<div class="muted">' + esc(a.start) + ' → ' + esc(a.end) + '</div>' +
+            '<div style="margin-top:6px"><strong>' + fmt(a.grams) + ' g</strong>' + (a.plants ? ' <span class="muted">(' + fmt(a.grams / a.plants) + ' g/planta)</span>' : '') + '</div>' +
+            (a.notes ? '<div style="font-size:0.88rem;margin-top:6px;white-space:pre-wrap">' + esc(a.notes) + '</div>' : '') +
+            extra + '<button class="btn btn-close small" data-del="' + a.id + '">🗑️ Eliminar</button></div></div>';
+    }).join('');
+}
+
+/* ============ AJUSTES ============ */
+function resetIntervals() { S.intervals = clone(DEF_INTERVALS); save(); renderSettings(); renderAll(); }
+function renderSettings() {
+    $('intervalEditor').innerHTML = PHASE_ROWS.map(pr => '<div class="nutri-row"><span style="flex:1;font-size:0.88rem;color:var(--text)">' + pr[1] + '</span><span>cada</span><input type="number" class="custom-input num" min="1" max="7" step="1" data-int="' + pr[0] + '" value="' + S.intervals[pr[0]] + '"><span>días</span></div>').join('');
+    $('nutriEditor').innerHTML = NUTRI_ROWS.map(pr => {
+        const k = pr[0], list = S.nutri[k] || [];
+        return '<div class="nutri-block"><h4>' + pr[1] + '</h4>' +
+            (list.length ? list.map((p, i) => '<div class="nutri-row"><input type="text" class="custom-input" data-k="' + k + '" data-i="' + i + '" data-f="n" value="' + esc(p.n) + '"><input type="number" class="custom-input num" step="0.1" min="0" data-k="' + k + '" data-i="' + i + '" data-f="d" value="' + p.d + '"><span>ml/L</span><button class="mini-btn" style="flex:none;width:32px" data-rm="' + k + ':' + i + '" aria-label="Quitar">✕</button></div>').join('') : '<p class="muted" style="margin:0 0 8px">Sin productos: se regará con agua sola.</p>') +
+            '<button class="btn btn-close small" data-add="' + k + '">➕ Añadir producto</button></div>';
+    }).join('');
+    $('storageInfo').textContent = 'Datos guardados: ' + Math.round(JSON.stringify(S).length / 1024) + ' KB (el navegador permite unos 5000 KB).';
+}
+function resetNutri() { if (confirm('¿Restaurar las dosis por defecto?')) { S.nutri = clone(DEF_NUTRI); save(); renderSettings(); renderAll(); } }
+function exportData() {
+    const blob = new Blob([JSON.stringify(S)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'cultivo-indoor-pro-copia-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast('Copia exportada ✓');
+}
+function importData(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+        try {
+            const o = JSON.parse(fr.result);
+            if (!o || typeof o !== 'object' || !o.start || !o.days || !Array.isArray(o.archive)) throw new Error('formato');
+            if (!confirm('Esto reemplazará los datos actuales. ¿Continuar?')) return;
+            S = normalize(Object.assign(defaults(), o));
+            save(); syncDashboard(); activeWeek.n = activeWeek.c = null; renderAll(); toast('Copia importada ✓');
+        } catch (err) { toast('Archivo no válido'); }
+        e.target.value = '';
+    };
+    fr.readAsText(f);
+}
+function resetAll() {
+    if (!confirm('¿Borrar TODOS los datos (calendario, notas, fotos e historial)? No se puede deshacer.')) return;
+    S = defaults(); save(); syncDashboard(); activeWeek.n = activeWeek.c = null; renderAll(); toast('Datos borrados');
+}
+
+/* ============ NAVEGACIÓN Y RENDER GLOBAL ============ */
+function switchMainTab(t) {
+    curTab = t;
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+    document.querySelectorAll('.view-section').forEach(v => v.classList.toggle('active', v.id === 'view-' + t));
+    if (t === 'settings') renderSettings();
+    renderAll();
+    window.scrollTo({ top: 0 });
+}
+function renderAll() {
+    renderStatus(); renderAlert();
+    if (curTab === 'calendar') renderWeeks(false);
+    else if (curTab === 'custom') renderWeeks(true);
+    else if (curTab === 'calculator') { renderCalcSelect(); calculateNutrients(); }
+    else if (curTab === 'archive') renderArchive();
+}
+
+/* ============ PWA ============ */
+let deferredPrompt = null;
+function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; $('installBtn').style.display = 'none'; });
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBtn').style.display = 'inline-block'; });
+function setupPWA() {
+    // El manifiesto debe ser un archivo real servido desde el mismo origen.
+    // Los service workers solo funcionan en HTTPS o localhost, no al abrir file://.
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            reg.update().catch(() => {});
+        }).catch(err => console.warn('No se pudo registrar el modo sin conexión:', err));
+    }
+}
+
+/* ============ ARRANQUE ============ */
+document.addEventListener('DOMContentLoaded', () => {
+    load(); setupPWA(); syncDashboard();
+    bindWeeks(false); bindWeeks(true);
+
+    $('strainDropdownList').addEventListener('click', e => {
+        const it = e.target.closest('[data-i]'); if (it) applyStrain(STRAINS[+it.dataset.i]);
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#strainSearchInput') && !e.target.closest('#strainDropdownList')) $('strainDropdownList').style.display = 'none';
+    });
+    $('strainSearchInput').addEventListener('change', () => {
+        const v = $('strainSearchInput').value.trim();
+        const m = STRAINS.find(x => x.name.toLowerCase() === v.toLowerCase());
+        if (m) applyStrain(m); else { S.strain = v; save(); renderStatus(); }
+    });
+
+    const photoBox = $('photoPreviewContainer');
+    photoBox.addEventListener('click', e => {
+        const x = e.target.closest('[data-x]'), im = e.target.closest('.photo-thumb');
+        if (x) { tmpPhotos.splice(+x.dataset.x, 1); renderPhotos(); }
+        else if (im) openLightbox(tmpPhotos[+im.dataset.i]);
+    });
+    $('archPhotoPreview').addEventListener('click', e => {
+        const x = e.target.closest('[data-x]'), im = e.target.closest('.photo-thumb');
+        if (x) { tmpArch.splice(+x.dataset.x, 1); renderArchPhotos(); }
+        else if (im) openLightbox(tmpArch[+im.dataset.i]);
+    });
+    $('archiveListContainer').addEventListener('click', e => {
+        const del = e.target.closest('[data-del]');
+        if (del) {
+            if (confirm('¿Eliminar este cultivo del historial?')) { S.archive = S.archive.filter(a => String(a.id) !== del.dataset.del); save(); renderArchive(); }
+            return;
+        }
+        const im = e.target.closest('img[data-a]');
+        if (im) { const a = S.archive.find(z => String(z.id) === im.dataset.a); if (a) openLightbox(a.photos[+im.dataset.i]); }
+    });
+
+    $('intervalEditor').addEventListener('change', e => {
+        const t = e.target; if (!t.dataset || !t.dataset.int) return;
+        S.intervals[t.dataset.int] = clampNum(t.value, 1, 7, DEF_INTERVALS[t.dataset.int]);
+        t.value = S.intervals[t.dataset.int]; save(); renderAll();
+    });
+    const ed = $('nutriEditor');
+    ed.addEventListener('input', e => {
+        const t = e.target; if (!t.dataset || !t.dataset.k) return;
+        const item = S.nutri[t.dataset.k] && S.nutri[t.dataset.k][+t.dataset.i]; if (!item) return;
+        item[t.dataset.f] = t.dataset.f === 'd' ? (parseFloat(t.value) || 0) : t.value;
+        save();
+    });
+    ed.addEventListener('click', e => {
+        const add = e.target.closest('[data-add]'), rm = e.target.closest('[data-rm]');
+        if (add) { (S.nutri[add.dataset.add] = S.nutri[add.dataset.add] || []).push({ n: 'Nuevo producto', d: 1 }); save(); renderSettings(); }
+        else if (rm) { const p = rm.dataset.rm.split(':'); S.nutri[p[0]].splice(+p[1], 1); save(); renderSettings(); }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeModal(); closeCustom(); closeArchiveModal(); $('lightbox').style.display = 'none'; }
+    });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) renderAll(); });
+    setInterval(() => { renderStatus(); renderAlert(); }, 60000);
+
+    renderAll();
+});
+</script>
+</body>
+</html>
