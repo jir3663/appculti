@@ -8,6 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cultivo Pro">
+<meta name="description" content="Gestor personal de cultivo indoor con calendario, seguimiento y copias de seguridad">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Mi Cultivo Indoor Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -268,7 +272,7 @@
 <body>
 <header>
     <h1>🌿 Mi Cultivo Indoor Pro</h1>
-    <p class="subtitle">Catálogo de 500+ Genéticas Mundiales • Advanced Nutrients</p>
+    <p class="subtitle">Gestor con catálogo mundial de genéticas • Advanced Nutrients</p>
     <button id="installBtn" class="install-btn" style="display:none" onclick="installApp()">📲 Instalar app</button>
 </header>
 
@@ -283,17 +287,14 @@
 
     <div class="top-dashboard">
         <div class="control-group">
-            <label for="speedFilterSelect">⚡ Filtrar por Velocidad / Tipo:</label>
-            <select id="speedFilterSelect" onchange="filterStrains()">
-                <option value="all">🌐 Todas las variedades (500+)</option>
-                <option value="ultra">⚡ Ultra-Rápidas (6-7 semanas / Fast)</option>
-                <option value="fast">🚀 Rápidas / Floración corta (8 semanas)</option>
-                <option value="med">⏱️ Estándar / Medias (9-10 semanas)</option>
-                <option value="long">⏳ Ciclo largo / Sativas (11+ semanas)</option>
-                <option value="auto">🚗 Autoflorecientes</option>
-            </select>
+            <label for="strainSearchInput">🔍 Genética (100+ variedades):</label>
+            <input type="text" id="strainSearchInput" placeholder="Haz clic o escribe para buscar..." autocomplete="off" onfocus="showStrainDropdown()" oninput="filterStrains()" onclick="showStrainDropdown()">
+            <div id="strainDropdownList" class="search-dropdown-list"></div>
         </div>
         <div class="control-group">
-            <label for="strainSearchInput">🔍 Buscar por nombre:</label>
-            <input type="text" id="strainSearchInput" placeholder="Ej: Green Poison, Gelato, Mandarine..." autocomplete="off" onfocus="showStrainDropdown()" oninput="filterStrains()" onclick="showStrainDropdown()">
-            <div id="str
+            <label for="startDateInput">📅 Fecha de inicio:</label>
+            <input type="date" id="startDateInput" onchange="updateSettings()">
+        </div>
+        <div class="control-group">
+            <label for="plantsCountInput">🌿 Número de plantas:</label>
+            <input type="number" id="plant
